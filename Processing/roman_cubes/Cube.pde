@@ -1,22 +1,19 @@
 class Cube {
     public PVector center;
     public float radius;
-    public color light;
-    public color med;
-    public color dark;
+    public IntDict properties;
     public float angle;
+    public float stretchFactor = 1.0;
     public boolean debug = false;
     private PVector currentCenter;
     private float apothem;
-    public Cube(PVector center, float radius, float angle, color light, color med, color dark) {
+    public Cube(PVector center, float radius, float angle, IntDict properties) {
         this.center = center;
         this.currentCenter = center;
         this.radius = radius;
         this.angle = angle;
         this.apothem = radius * 0.866025403784;
-        this.light = light;
-        this.med = med;
-        this.dark = dark;
+        this.properties = properties;
     }
     
     public float getApothem() {
@@ -32,25 +29,30 @@ class Cube {
     
     public void draw() {
         noStroke();
-        PVector right = new PVector(this.center.x + cos(angle) * this.radius, this.center.y + sin(angle) * this.radius);
         PVector left = new PVector(this.center.x - cos(angle) * this.radius, this.center.y + sin(-angle) * this.radius);
         PVector botright = new PVector(this.center.x + cos((PI / 3) + angle) * this.radius, this.center.y + sin((PI / 3) + angle) * this.radius);
         PVector botleft = new PVector(this.center.x + cos((TWO_PI / 3) + angle) * this.radius, this.center.y + sin((TWO_PI / 3) + angle) * this.radius);
-        PVector topleft = new PVector(this.center.x + cos((4 * PI / 3) + angle) * this.radius, this.center.y + sin((4 * PI / 3) + angle) * this.radius);
-        PVector topright = new PVector(this.center.x + cos((5 * PI / 3) + angle) * this.radius, this.center.y + sin((5 * PI / 3) + angle) * this.radius);
-        if(hovered() && !mousePressed) {
-          currentCenter = new PVector(this.center.x, this.center.y-radius/3);
-          right = new PVector(right.x, right.y-radius/3);
-          topright = new PVector(topright.x, topright.y-radius/3);
-          topleft = new PVector(topleft.x, topleft.y-radius/3);
+        color lightfill = this.properties.get("light");
+        color medfill = this.properties.get("med");
+        color darkfill = this.properties.get("dark");
+        if(hovered()) {
+          if(!mousePressed) {
+            currentCenter = new PVector(this.center.x - cos((TWO_PI / 3) + angle) *radius / 3, this.center.y-sin((TWO_PI / 3) + angle) *radius/3);
+          }
+          lightfill = this.properties.get("light_hover");
+          medfill = this.properties.get("med_hover");
+          darkfill = this.properties.get("dark_hover");
         }
         else {
           currentCenter = new PVector(this.center.x, this.center.y);
         }
+        PVector right = new PVector(currentCenter.x + cos(angle) * this.radius, currentCenter.y + sin(angle) * this.radius);
+        PVector topleft = new PVector(currentCenter.x + cos((4 * PI / 3) + angle) * this.radius, currentCenter.y + sin((4 * PI / 3) + angle) * this.radius);
+        PVector topright = new PVector(currentCenter.x + cos((5 * PI / 3) + angle) * this.radius, currentCenter.y + sin((5 * PI / 3) + angle) * this.radius);
         
         PShape tr = createShape();
         tr.beginShape();
-        tr.fill(this.light);
+        tr.fill(lightfill);
         tr.vertex(currentCenter.x,currentCenter.y);
         tr.vertex(right.x,right.y);
         tr.vertex(topright.x,topright.y);
@@ -60,7 +62,7 @@ class Cube {
         
         PShape br = createShape();
         br.beginShape();
-        br.fill(this.dark);
+        br.fill(darkfill);
         br.vertex(currentCenter.x,currentCenter.y);
         br.vertex(right.x,right.y);
         br.vertex(botright.x,botright.y);
@@ -70,7 +72,7 @@ class Cube {
         
         PShape bl = createShape();
         bl.beginShape();
-        bl.fill(this.med);
+        bl.fill(medfill);
         bl.vertex(currentCenter.x,currentCenter.y);
         bl.vertex(botleft.x,botleft.y);
         bl.vertex(left.x,left.y);
